@@ -1,0 +1,115 @@
+There is one master one slave and 3 sentinel node in redis sentinel cluster
+Now install redis package:
+yum install redis30u-3.0.4-1.ius.centos7.x86_64.rpm
+
+vim /etc/redis.conf  (on master and slave node)
+
+daemonize no
+pidfile "/var/run/redis/redis.pid"
+port 6379
+tcp-backlog 511
+bind node_ip
+timeout 0
+tcp-keepalive 0
+loglevel notice
+logfile "/var/log/redis/redis.log"
+databases 16
+stop-writes-on-bgsave-error yes
+rdbcompression yes
+rdbchecksum yes
+dbfilename "dump.rdb"
+dir "/var/lib/redis"
+masterauth "paxxssxxxxwoxxrd"
+slave-serve-stale-data yes
+slave-read-only yes
+repl-diskless-sync no
+repl-diskless-sync-delay 5
+repl-disable-tcp-nodelay no
+slave-priority 100
+appendonly yes
+appendfilename "appendonly.aof"
+appendfsync everysec
+no-appendfsync-on-rewrite no
+auto-aof-rewrite-percentage 100
+auto-aof-rewrite-min-size 64mb
+aof-load-truncated yes
+lua-time-limit 5000
+slowlog-log-slower-than 10000
+slowlog-max-len 128
+latency-monitor-threshold 0
+notify-keyspace-events ""
+hash-max-ziplist-entries 512
+hash-max-ziplist-value 64
+list-max-ziplist-entries 512
+list-max-ziplist-value 64
+set-max-intset-entries 512
+zset-max-ziplist-entries 128
+zset-max-ziplist-value 64
+hll-sparse-max-bytes 3000
+activerehashing yes
+client-output-buffer-limit normal 0 0 0
+client-output-buffer-limit slave 256mb 64mb 60
+client-output-buffer-limit pubsub 32mb 8mb 60
+hz 10
+aof-rewrite-incremental-fsync yes
+
+Restart the redis service
+Now steps on all sentinel node:
+vim /etc/redis-sentinel.conf
+port 26379
+logfile "/var/log/redis/sentinel.log"
+dir "/tmp"
+sentinel monitor mymaster master_node_ip 6379 2
+sentinel config-epoch mymaster 2
+sentinel leader-epoch mymaster 2
+sentinel known-slave mymaster slave_node_ip 6379
+bind sentinel_ip
+
+
+Restart the redis-sentinel service
+
+
+
+
+[root@redis-sentine01 ~]# redis-cli -h 192.168.21.111 -p 26379
+192.168.21.111:26379> sentinel master mymaster
+ 1) "name"
+ 2) "mymaster"
+ 3) "ip"
+ 4) "192.168.22.226"
+ 5) "port"
+ 6) "6379"
+ 7) "runid"
+ 8) ""
+ 9) "flags"
+10) "s_down,master"
+11) "pending-commands"
+12) "12"
+13) "last-ping-sent"
+14) "317949"
+15) "last-ok-ping-reply"
+16) "317949"
+17) "last-ping-reply"
+18) "317949"
+19) "s-down-time"
+20) "287900"
+21) "down-after-milliseconds"
+22) "30000"
+23) "info-refresh"
+24) "1564038733669"
+25) "role-reported"
+26) "master"
+27) "role-reported-time"
+28) "317949"
+29) "config-epoch"
+30) "2"
+31) "num-slaves"
+32) "1"
+33) "num-other-sentinels"
+34) "3"
+35) "quorum"
+36) "2"
+37) "failover-timeout"
+38) "180000"
+39) "parallel-syncs"
+40) "1"
